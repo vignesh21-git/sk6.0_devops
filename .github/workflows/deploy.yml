@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.meta.outputs.tag }}
+      image_name: ${{ steps.meta.outputs.image_name }}
 
     steps:
       - name: Checkout
@@ -37,7 +38,9 @@ jobs:
         id: meta
         run: |
           TAG="${{ github.event.inputs.image_tag || github.sha }}"
+          IMAGE_NAME="$(echo 'ghcr.io/${{ github.repository }}/sk6-api' | tr '[:upper:]' '[:lower:]')"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -53,8 +56,8 @@ jobs:
           file: ./backend/docker/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/sk6-api:${{ steps.meta.outputs.tag }}
-            ghcr.io/${{ github.repository }}/sk6-api:latest
+            ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.image_name }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
